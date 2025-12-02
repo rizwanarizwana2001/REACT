@@ -1,0 +1,211 @@
+import React, { useState } from 'react';
+
+const SpeechWordsTrainer = () => {
+  const wordCategories = {
+    'Tricky Consonants': [
+      { word: 'through', pronunciation: 'throo', tip: 'TH + roo, bite your tongue lightly', difficulty: 'hard' },
+      { word: 'sixth', pronunciation: 'siksth', tip: 'SIK + sth, end with soft TH', difficulty: 'hard' },
+      { word: 'rhythm', pronunciation: 'rih-thuhm', tip: 'RIH + thum, no vowel after TH', difficulty: 'medium' },
+      { word: 'squirrel', pronunciation: 'skwur-uhl', tip: 'SKWUR + ul, roll that R slightly', difficulty: 'hard' },
+      { word: 'clothes', pronunciation: 'klohz', tip: 'KLOHZ (not "clo-theez")', difficulty: 'medium' }
+    ],
+    'Silent Letters': [
+      { word: 'knight', pronunciation: 'nite', tip: 'K is silent, sounds like "night"', difficulty: 'easy' },
+      { word: 'psychology', pronunciation: 'sy-kol-uh-jee', tip: 'P is silent, start with S', difficulty: 'medium' },
+      { word: 'doubt', pronunciation: 'dowt', tip: 'B is silent, rhymes with "out"', difficulty: 'easy' },
+      { word: 'honest', pronunciation: 'on-ist', tip: 'H is silent, start with O', difficulty: 'easy' },
+      { word: 'island', pronunciation: 'eye-land', tip: 'S is silent, like "eye-land"', difficulty: 'easy' }
+    ],
+    'Vowel Sounds': [
+      { word: 'thought', pronunciation: 'thawt', tip: 'TH + awt, like "caught"', difficulty: 'medium' },
+      { word: 'enough', pronunciation: 'ee-nuf', tip: 'EE + nuf, -ough = "uff"', difficulty: 'medium' },
+      { word: 'beautiful', pronunciation: 'byoo-tih-fuhl', tip: 'BYOO + ti + ful, 3 syllables', difficulty: 'medium' },
+      { word: 'colonel', pronunciation: 'ker-nuhl', tip: 'Sounds like "kernel"!', difficulty: 'hard' },
+      { word: 'chaos', pronunciation: 'kay-os', tip: 'KAY + os, not "chow-s"', difficulty: 'medium' }
+    ],
+    'Word Stress': [
+      { word: 'photograph', pronunciation: 'FOH-tuh-graf', tip: 'Stress on FIRST syllable', difficulty: 'easy' },
+      { word: 'photographer', pronunciation: 'fuh-TOG-ruh-fer', tip: 'Stress on SECOND syllable', difficulty: 'medium' },
+      { word: 'comfortable', pronunciation: 'KUMF-ter-buhl', tip: 'KUMF, not "com-for-ta-ble"', difficulty: 'medium' },
+      { word: 'restaurant', pronunciation: 'RES-tuh-ront', tip: 'Stress on FIRST, 3 syllables', difficulty: 'medium' },
+      { word: 'chocolate', pronunciation: 'CHOK-lit', tip: 'CHOK + lit, 2 syllables', difficulty: 'easy' }
+    ]
+  };
+
+  const [selectedCategory, setSelectedCategory] = useState('Tricky Consonants');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [practiced, setPracticed] = useState(new Set());
+
+  const currentWords = wordCategories[selectedCategory];
+  const currentWord = currentWords[currentIndex];
+  const progress = (practiced.size / Object.values(wordCategories).flat().length) * 100;
+
+  const handleSpeak = () => {
+    const utterance = new SpeechSynthesisUtterance(currentWord.word);
+    utterance.rate = 0.7;
+    speechSynthesis.speak(utterance);
+  };
+
+  const handleGotIt = () => {
+    setScore(score + 1);
+    setPracticed(new Set([...practiced, currentWord.word]));
+    nextWord();
+  };
+
+  const handleTryAgain = () => {
+    setPracticed(new Set([...practiced, currentWord.word]));
+    nextWord();
+  };
+
+  const nextWord = () => {
+    setShowAnswer(false);
+    if (currentIndex < currentWords.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      setCurrentIndex(0);
+    }
+  };
+
+  const getDifficultyColor = (difficulty) => {
+    switch(difficulty) {
+      case 'easy': return 'bg-green-100 text-green-700';
+      case 'medium': return 'bg-yellow-100 text-yellow-700';
+      case 'hard': return 'bg-red-100 text-red-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-purple-900 mb-2">
+            🧠 English Speech Master
+          </h1>
+          <p className="text-gray-600">Practice tricky words and perfect your pronunciation!</p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="bg-white rounded-lg shadow-md p-4 text-center">
+            <div className="text-3xl mb-1">🏆</div>
+            <div className="text-2xl font-bold text-purple-900">{score}</div>
+            <div className="text-xs text-gray-600">Mastered</div>
+          </div>
+          <div className="bg-white rounded-lg shadow-md p-4 text-center">
+            <div className="text-3xl mb-1">⚡</div>
+            <div className="text-2xl font-bold text-purple-900">{practiced.size}</div>
+            <div className="text-xs text-gray-600">Practiced</div>
+          </div>
+          <div className="bg-white rounded-lg shadow-md p-4 text-center">
+            <div className="text-2xl font-bold text-purple-900">{Math.round(progress)}%</div>
+            <div className="text-xs text-gray-600">Progress</div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+              <div className="bg-purple-500 h-1.5 rounded-full transition-all" style={{width: `${progress}%`}}></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Selector */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {Object.keys(wordCategories).map(category => (
+            <button
+              key={category}
+              onClick={() => {
+                setSelectedCategory(category);
+                setCurrentIndex(0);
+                setShowAnswer(false);
+              }}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                selectedCategory === category
+                  ? 'bg-purple-600 text-white shadow-lg scale-105'
+                  : 'bg-white text-purple-600 hover:bg-purple-50'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        {/* Main Card */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+          <div className="flex justify-between items-start mb-6">
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(currentWord.difficulty)}`}>
+              {currentWord.difficulty}
+            </span>
+            <span className="text-sm text-gray-500">
+              {currentIndex + 1} / {currentWords.length}
+            </span>
+          </div>
+
+          <div className="text-center mb-8">
+            <div className="text-6xl font-bold text-purple-900 mb-4">
+              {currentWord.word}
+            </div>
+            
+            <button
+              onClick={handleSpeak}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full transition-all hover:scale-105 shadow-lg text-lg"
+            >
+              🔊 Listen
+            </button>
+          </div>
+
+          {!showAnswer ? (
+            <div className="text-center">
+              <button
+                onClick={() => setShowAnswer(true)}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-full font-medium transition-all hover:scale-105"
+              >
+                Show How to Say It
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="bg-purple-50 rounded-lg p-6 border-2 border-purple-200">
+                <div className="text-sm text-purple-600 font-medium mb-2">PRONUNCIATION:</div>
+                <div className="text-3xl font-bold text-purple-900 mb-4">
+                  {currentWord.pronunciation}
+                </div>
+                <div className="text-sm text-gray-700 bg-white p-3 rounded-lg">
+                  💡 <strong>Tip:</strong> {currentWord.tip}
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleTryAgain}
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium transition-all"
+                >
+                  ❌ Need Practice
+                </button>
+                <button
+                  onClick={handleGotIt}
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-all"
+                >
+                  ✅ Got It!
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Tips */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="font-bold text-gray-900 mb-3">🎯 Practice Tips:</h3>
+          <ul className="space-y-2 text-sm text-gray-700">
+            <li>• Say each word slowly 3 times, then at normal speed</li>
+            <li>• Record yourself and compare with the audio</li>
+            <li>• Practice in front of a mirror to watch your mouth</li>
+            <li>• Focus on one category at a time until you master it</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SpeechWordsTrainer;
